@@ -24,7 +24,9 @@ var makeTweetUseful = function (status) {
 };
 
 var fixTweets = function (tweets) {
-    return tweets.statuses.map(makeTweetUseful);
+    if (tweets && tweets.statuses) {
+        return tweets.statuses.map(makeTweetUseful);
+    }
 };
 
 var cachedTweets;
@@ -36,7 +38,12 @@ var getTweets = function () {
         filter: 'twimg',
         exclude: 'retweets'
     }, function (error, tweets, response) {
-        cachedTweets = fixTweets(tweets);
+        if (!error) {
+            var fixedTweets = fixTweets(tweets);
+            if (fixedTweets) {
+                cachedTweets = fixedTweets;
+            }
+        }
     });
 };
 
@@ -44,7 +51,7 @@ var getTweets = function () {
 getTweets();
 
 var interval = 60 * 1000 * 1; // 1 min
-setInterval(getTweets, interval)
+setInterval(getTweets, interval);
 
 app.get('/', function(req, res) {
     res.render('app', {
