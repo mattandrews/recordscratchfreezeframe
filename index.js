@@ -15,12 +15,14 @@ var client = new Twitter({
 });
 
 var makeTweetUseful = function (status) {
-    var data = {
-        user: status.user.screen_name,
-        image: status.entities.media[0].media_url,
-        link: 'https://www.twitter.com/' + status.user.screen_name + '/status/' + status.id_str
-    };
-    return data;
+    if (status.entities && status.entities.media) {
+        var data = {
+            user: status.user.screen_name,
+            image: status.entities.media[0].media_url,
+            link: 'https://www.twitter.com/' + status.user.screen_name + '/status/' + status.id_str
+        };
+        return data;
+    }
 };
 
 var fixTweets = function (tweets) {
@@ -39,10 +41,18 @@ var getTweets = function () {
         exclude: 'retweets'
     }, function (error, tweets, response) {
         if (!error) {
+            console.log('got tweets');
             var fixedTweets = fixTweets(tweets);
             if (fixedTweets) {
-                cachedTweets = fixedTweets;
+                console.log('fixed them');
+                cachedTweets = fixedTweets.filter(function(t) {
+                    return typeof t !== 'undefined';
+                });
+            } else {
+                console.log('got no tweets');
             }
+        } else {
+            console.log(error);
         }
     });
 };
