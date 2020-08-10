@@ -18,7 +18,7 @@ var makeTweetUseful = function (status) {
     if (status.entities && status.entities.media) {
         var data = {
             user: status.user.screen_name,
-            image: status.entities.media[0].media_url,
+            image: status.entities.media[0].media_url_https,
             link: 'https://www.twitter.com/' + status.user.screen_name + '/status/' + status.id_str
         };
         return data;
