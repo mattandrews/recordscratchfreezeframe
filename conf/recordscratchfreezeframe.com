@@ -4,7 +4,7 @@ upstream my_nodejs_upstream {
 }
 
 server {
-    server_name recordscratchfreezeframe.com;
+    server_name recordscratchfreezeframe.com www.recordscratchfreezeframe.com;
 
     location / {
     	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
