@@ -60,4 +60,4 @@ jobs:
       - name: Restart app server
         if: success()
         run: |
-          ssh $SSH_HOST_NAME "pm2 restart $APP_CWD/index.js --port 3001 --name recordscratchfreezeframe"
+          ssh $SSH_HOST_NAME "pm2 restart $APP_CWD/index.js --name recordscratchfreezeframe"
