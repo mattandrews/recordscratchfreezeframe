@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>[record scratch] [freeze frame]</title>
+    <link rel="stylesheet" type="text/css" href="/public/css/app.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- a stupid thing by https://bsky.app/profile/mattandrews.info -->
+</head>
+<body>
+
+
+    <aside>
+        <button>
+            [record scratch]<br />
+            [freeze frame]
+        </button>
+    </aside>
+
+    <ul class="posts">
+        <% posts.forEach(function (post, i) { %>
+            <li<% if (i === 0) { %> class="current"<% } %>>
+                <h1>
+                    <%= post.status %>
+                </h1>
+                <img src="<%= post.imageUrl %>" alt="<%= post.status%>" />
+                <h3><a href="<%= post.url %>">@<%= post.username %></a></h3>
+            </li>
+        <% })%>
+    </ul>
+
+    <audio>
+        <source type="audio/wav" src="/public/scratch.wav">
+        <source type="audio/ogg" src="/public/scratch.ogg">
+        <source type="audio/mpeg" src="/public/scratch.mp3">
+    </audio>
+
+    <script>
+        const posts = document.querySelectorAll('ul.posts li');
+        const btn = document.querySelector('button');
+        const firstPost = document.querySelector('ul.posts li:first-child')
+        const currentClass = 'current';
+        const audio = document.querySelector('audio');
+
+        btn.addEventListener('click', () => {
+            const currentPost = document.querySelector(`ul.posts .${currentClass}`);
+            let nextPost = currentPost.nextElementSibling;
+            if (!nextPost) {
+                nextPost = firstPost;
+            }
+            currentPost.classList.remove(currentClass);
+            nextPost.classList.add(currentClass);
+            audio.play();
+        })
+    </script>
+</body>
+</html>

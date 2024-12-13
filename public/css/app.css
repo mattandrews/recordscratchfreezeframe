@@ -14,19 +14,39 @@ ul, ol, li {
     list-style: none;
 }
 
-ul {
+
+.posts {
     height: 100%;
     position: relative;
 }
+.posts li {
+    display: none;
+}
 
-li {
+@keyframes foo {
+    0% {
+        filter: blur(30px);
+        transform: scale(1.5);
+    }
+    100% {
+        filter: none;
+        transform: none;
+    }
+}
+
+
+.posts li.current {
+    display: block;
     width: 100%;
     height: 100%;
-    display: none;
-    background-size: cover;
-    background-position: center center;
-    filter: blur(30px);
-    transform: scale(1.5);
+    animation: foo 0.3s ease-in;
+    animation-fill-mode: forwards;
+}
+
+.posts li.current img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
 }
 
 h1, h2, h3 {
@@ -37,7 +57,7 @@ h1, h2, h3 {
 
 h3 {
     position: absolute;
-
+    z-index: 10;
     background-color: rgba(0, 0, 0, 0.6);
     color: #eeeeee;
     padding: 5px 10px;
@@ -60,25 +80,14 @@ h3:hover {
     background-color: #000000;
 }
 
-@keyframes foo {
-    100% {
-        filter: none;
-        transform: none;
-    }
-}
 
-.anim-zoom {
-    animation: foo 0.3s ease-in;
-    animation-fill-mode: forwards;
-}
 aside {
     position: absolute;
-    left: 0px;
-    right: 0px;
-    z-index: 1000;
-    margin: auto;
     bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
     text-align: center;
+    z-index: 1;
 }
 
 button {
@@ -106,7 +115,7 @@ h1 {
     top: 40px;
     font-size: 18px;
     line-height: 1.3;
-    display: none;
+    /*display: none;*/
 }
 
 h1 span {

@@ -1,73 +1,70 @@
-var express = require('express');
-var app = express();
+// Import the framework and instantiate it
+import Fastify from 'fastify'
+import fetch from 'node-fetch';
+import ejs from 'ejs';
 
-// set the view engine to ejs
-app.set('view engine', 'ejs');
-app.use('/static', express.static('public'));
+import fastifyStatic from "@fastify/static";
+import path from 'node:path';
 
-var Twitter = require('twitter');
+import fastifyView from '@fastify/view';
+const __dirname = path.resolve();
 
-var client = new Twitter({
-    consumer_key: 'z8dm3VDye9T3OF8tuQwd116Jm',
-    consumer_secret: 'M8apqoHRkb2uvrr6NoFRsqP1W85vJxh3Itk9Uf9V50BUQEWUiS',
-    access_token_key: '14132114-ahifo1LnjRBQjLTG1Xmm0aAYge8aLH9oz3Yn8lqnk',
-    access_token_secret: 'ipje5adF4OqV4MI9kZ9zMJYiU3mdA6awg1FH3pX383Fxx'
-});
 
-var makeTweetUseful = function (status) {
-    if (status.entities && status.entities.media) {
-        var data = {
-            user: status.user.screen_name,
-            image: status.entities.media[0].media_url_https,
-            link: 'https://www.twitter.com/' + status.user.screen_name + '/status/' + status.id_str
-        };
-        return data;
-    }
-};
+const fastify = Fastify({
+  logger: true
+})
 
-var fixTweets = function (tweets) {
-    if (tweets && tweets.statuses) {
-        return tweets.statuses.map(makeTweetUseful);
-    }
-};
+fastify.register(fastifyView, {
+  engine: {
+    ejs: ejs
+  }
+})
 
-var cachedTweets;
-var getTweets = function () {
-    console.log('getting tweets');
-    var phrase = "you're probably wondering how i ended up in this situation";
-    client.get('search/tweets', {
-        q: phrase,
-        filter: 'twimg',
-        exclude: 'retweets'
-    }, function (error, tweets, response) {
-        if (!error) {
-            console.log('got tweets');
-            var fixedTweets = fixTweets(tweets);
-            if (fixedTweets) {
-                console.log('fixed them');
-                cachedTweets = fixedTweets.filter(function(t) {
-                    return typeof t !== 'undefined';
-                });
-            } else {
-                console.log('got no tweets');
-            }
-        } else {
-            console.log(error);
-        }
-    });
-};
+fastify.register(fastifyStatic, {
+  root: path.join(__dirname, 'public'),
+  prefix: '/public/', // optional: default '/'
+})
 
-// populate
-getTweets();
 
-var interval = 60 * 1000 * 1; // 1 min
-setInterval(getTweets, interval);
+const convertAtProtocolToUri = data => {
+  // from at://did:plc:o5exgt6gniampdauygxutzq7/app.bsky.feed.post/3ld65r5cm422v
+  // to https://bsky.app/profile/viktorwinetrout.bsky.social/post/3ld65r5cm422v
+  const atUri = data.uri;
+  const atBits = atUri.split('/');
+  const postId = atBits[atBits.length-1];
+  const author = data.author.handle;
+  const url = `https://bsky.app/profile/${author}/post/${postId}`;
+  return url;
+}
 
-app.get('/', function(req, res) {
-    res.render('app', {
-        tweets: cachedTweets || []
-    });
-});
 
-app.listen(8080);
-console.log('8080 is the magic port');
+const cleanupPost = post => {
+  return {
+    url: convertAtProtocolToUri(post),
+    username: post.author.handle,
+    displayName: post.author.displayName,
+    datePosted: post.record.createdAt,
+    imageUrl: post.embed?.images?.[0].fullsize,
+    status: post.record.text
+  };
+}
+
+
+// Declare a route
+fastify.get('/', async function handler (req, reply) {
+
+  const response = await fetch('https://public.api.bsky.app/xrpc/app.bsky.feed.searchPosts?q=you%27re%20probably%20wondering%20how%20i%20ended%20up%20in%20this%20situation');
+  const data = await response.json();
+  const parsedData = data.posts.map(item => cleanupPost(item)).filter(post => {
+    return post.imageUrl
+  });
+  return reply.view("index.ejs", { posts: parsedData });
+})
+
+// Run the server!
+try {
+  await fastify.listen({ port: 3000 })
+} catch (err) {
+  fastify.log.error(err)
+  process.exit(1)
+}
